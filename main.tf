@@ -8,6 +8,7 @@ variable available_zone {}
 variable env_prefix {}
 variable my_ip {}
 variable "instance_type" {}
+variable "public_key" {}
 
 resource "aws_vpc" "myapp-vpc" {
     cidr_block = var.vpc_cidr_blocks
@@ -154,7 +155,23 @@ output "aws_ami_id" {
   
 }
 
+resource "aws_key_pair" "ssh" {
+  key_name = "server_key"
+  public_key = file(var.public_key)
+  
+}
+
 resource "aws_instance" "myapp-image" {
   ami= data.aws_ami.latest-amazon-linux-image.id
   instance_type = var.instance_type
+
+  subnet_id =aws_subnet.myapp-subnet-1.id
+  vpc_security_group_ids =[aws_default_security_group.default-sg.id]
+  availability_zone = var.available_zone
+  associate_public_ip_address = true
+  key_name = aws_key_pair.ssh.key_name
+
+  tags={
+    name="${var.env_prefix}-ec2"
+  }
 }
