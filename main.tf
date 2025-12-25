@@ -2,17 +2,6 @@ provider "aws" {
     region = "ap-south-1"
 }
 
-variable vpc_cidr_blocks {}
-variable subnet_cidr_blocks {}
-variable available_zone {}
-variable env_prefix {}
-variable my_ip {}
-variable instance_type {}
-variable public_key {}
-variable private_key {
-  
-}
-
 resource "aws_vpc" "myapp-vpc" {
     cidr_block = var.vpc_cidr_blocks
 
@@ -22,58 +11,18 @@ resource "aws_vpc" "myapp-vpc" {
   
 }
 
-resource "aws_subnet" "myapp-subnet-1" {
-    vpc_id = aws_vpc.myapp-vpc.id
-    cidr_block = var.subnet_cidr_blocks
-    availability_zone = var.available_zone
+module "myapp-subnet" {
+  source = "./modules/subnet"
+  subnet_cidr_blocks=var.subnet_cidr_blocks
+  available_zone=var.available_zone
+  env_prefix=var.env_prefix
+  vpc_id=aws_vpc.myapp-vpc.id
+  default_route_table_id=aws_vpc.myapp-vpc.default_route_table_id
 
-    tags = {
-      Name: "${var.env_prefix}-subnet-1"
-    }
+
   
 }
 
-resource "aws_internet_gateway" "myapp-igw" {
-  vpc_id = aws_vpc.myapp-vpc.id
-  tags = {
-    Name="${var.env_prefix}-igw"
-  }
-  
-}
-
-/*resource "aws_route_table" "myapp-route-table" {
-  vpc_id = aws_vpc.myapp-vpc.id
-
-  route{
-    cidr_block="0.0.0.0/0"
-    gateway_id=aws_internet_gateway.myapp-igw.id
-  }
-
-  tags = {
-    Name="${var.env_prefix}-rtb"
-  }
-
-}*/
-
-/*resource "aws_route_table_association" "art-subnet" {
-   subnet_id = aws_subnet.myapp-subnet-1.id
-   route_table_id = aws_route_table.myapp-route-table.id
-
-}*/
-
-resource "aws_default_route_table" "default-rtb" {
-  default_route_table_id = aws_vpc.myapp-vpc.default_route_table_id
-
-  route{
-    cidr_block="0.0.0.0/0"
-    gateway_id=aws_internet_gateway.myapp-igw.id
-  }
-
-  tags = {
-    Name="${var.env_prefix}-main-rtb"
-  }
-  
-}
 
 /*
 
@@ -153,10 +102,7 @@ data "aws_ami" "latest-amazon-linux-image"{
   }   
 }
 
-output "aws_ami_id" {
-  value = data.aws_ami.latest-amazon-linux-image
-  
-}
+
 
 resource "aws_key_pair" "ssh" {
   key_name = "server_key"
