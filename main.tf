@@ -172,9 +172,9 @@ resource "aws_instance" "myapp-image" {
   vpc_security_group_ids =[aws_default_security_group.default-sg.id]
   availability_zone = var.available_zone
   associate_public_ip_address = true
-  key_name = aws_key_pair.ssh.key_name
+  key_name = aws_key_pair.ssh.key_namegit 
 
-  user_data = file("entry-script.sh")  /*<- this we can usde but this not usee by terraform this execute by service provider*/
+  user_data = file("entry-script.sh")  /*<- this we can usde but this not usee by terraform this execute by service provider much better use*/
 
   /* provisioner not recoomended by terraform
   
